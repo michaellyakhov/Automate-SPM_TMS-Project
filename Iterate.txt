@@ -1,0 +1,40 @@
+
+function copyFiles(subjects, array)
+for i = 1:length(subjects)
+subject = array(1,i)
+disp(subject)
+for j = 2:4
+session = array (j,i)
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/" + "sub-" + subject + "/MNINonLinear/Results/ses-" + session + "_task-stroop_acq-PA_run-01_bold")
+destDir = ("/var/home/mlyakhov/Documents/Automate/" + "sub-" + subject + "/ses-" + session)
+if isfile(dataDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii.gz") == 1
+    if isfile(destDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii") == 0
+    copyfile(dataDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii.gz", destDir)
+    cd(destDir)
+    gunzip *.gz
+    end
+
+else if isfile(destDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold.nii") == 0
+copyfile(dataDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold.nii.gz", destDir)
+cd(destDir)
+gunzip *.gz
+
+end
+end
+end
+end
+disp("Files Copied!")
+%{
+for i = 1:length(subjects)
+subject = array(1,i)
+for j = 2:sessionsPerSubject+1
+session = array (j,i)
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/" + "sub-" + num2str(subject) + "/MNINonLinear/Results/ses-" + num2str(session) + "_task-stroop_acq-PA_run-01_bold")
+destDir = ("/var/home/mlyakhov/Documents/AutomateSmoothing1/" + "sub-" + subject + "/ses-" + session)
+if isfile(destDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii.gz") == 1
+cd(destDir)
+gunzip *.gz
+end
+end
+end
+%}

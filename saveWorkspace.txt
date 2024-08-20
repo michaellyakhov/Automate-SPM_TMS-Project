@@ -1,0 +1,4 @@
+%onsets, durations, conditions
+
+% Save only selected variables .mat file
+save('Onsets', 'onsets', 'durations', 'names');

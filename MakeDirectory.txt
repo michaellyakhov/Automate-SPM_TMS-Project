@@ -1,0 +1,21 @@
+
+%sessions per subject is hardcoded as 4
+for i = 1:length(subjects)
+subject = array(1,i)
+
+for j = 2:4
+session = array(j,i)
+destDir = fullfile("/var/home/mlyakhov/Documents/Automate/", "sub-" + subject, "/ses-" + session)
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/" + "sub-" + subject + "/MNINonLinear/Results/ses-" + session + "_task-stroop_acq-PA_run-01_bold")
+
+
+
+destDir = fullfile("/var/home/mlyakhov/Documents/Automate/", "sub-" + subject, "/ses-" + session)
+if ~exist(destDir, 'dir')
+mkdir(destDir)
+disp("Directory: " + destDir + "made")
+else
+disp("Directory " + destDir + " already exists")
+end
+end
+end

@@ -1,0 +1,302 @@
+
+clear
+clc
+subjects = ["12497" "13137" "12861" "13582" "13415" "14269" "14455" "14337" "7193"]
+sessions = {24182
+24190
+24202
+24189
+24197
+24203
+24239
+24249
+24252
+24240
+24246
+24250
+24255
+24257
+24265
+24256
+24260
+24267
+24261
+24279
+24284
+24274
+24277
+24283
+24317
+24323
+24335}
+
+
+%{
+inputsessions = {
+    [24182, 24190, 24202], ...
+    [24189, 24197, 24203], ...
+    [24239, 24249, 24252], ...
+    [24240, 24246, 24250], ...
+    [24255, 24257, 24265], ...
+    [24256, 24260, 24267], ...
+    [24261, 24279, 24284], ...
+    [24274, 24277, 24283], ...
+    [24317, 24323, 24335]
+};
+
+
+% Number of subjects and sessions
+sessionsperSubject = numel(inputsessions{1})
+%}
+
+%Hardcoding amout of sessions per subject because the format inputted from the spreadsheet is too hard to deal with -- fix later if needed 
+
+sessionsPerSubject = 3 
+numSubjects = numel(subjects);
+% Assuming each subject has exactly 3 sessions
+
+%Elements in Sessions
+
+numSessions = numel(sessions); 
+% Display sessions
+
+
+
+
+%{
+%Format Sessions
+
+sessions = string([sessionsinput{:}]);
+
+
+
+for i = 1:length(sessions)
+    % Extract the numeric part of the subject
+    numericPart = regexp(sessions{i}, '\d+', 'match', 'once');
+    % Create the new subject format
+    transformedSessions{i} = ['ses-' numericPart];
+end
+
+
+
+
+
+
+%format subjects
+
+for i = 1:length(subjects)
+    % Extract the numeric part of the subject
+    numericPart = regexp(subjects{i}, '\d+', 'match', 'once');
+    % Create the new subject format
+    transformedSubjects{i} = ['sub-' numericPart];
+    
+end
+
+
+%}
+sessions = string(sessions)
+array = zeros(sessionsPerSubject+1, numSubjects)
+
+ for i = 1:numSubjects
+    array(1,i) = subjects(i);
+    for j = 1:sessionsPerSubject
+    array(j+1, i) = sessions(i*3-(3-j));
+    
+    i
+    end
+
+end
+
+array
+
+
+disp("Checkpoint0")
+disp("Subjects Remaining: " + (numSubjects-i))
+
+%now the goal is to iterate through this array and make datadir go through each subject and session and then ultimately access the data
+
+%Iterate through each subject and session 
+
+
+
+for i = 1:length(subjects)
+
+disp("Checkpoint1")
+
+subject = array(1,i)
+
+for j = 2:sessionsPerSubject+1
+disp(j)
+if ~strcmp(array(1,i), array(j,i))
+disp("NOT EQUAL")
+array(1,i)
+array(j,i)
+session=array(j,i)
+session
+disp("hi")
+stringSession = string(session)
+stringSubject = string(subject)
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/" + "sub-" + num2str(subject) + "/MNINonLinear/Results/ses-" + num2str(session) + "_task-stroop_acq-PA_run-01_bold")
+
+
+end
+
+disp("Checkpoint2")
+
+%We are now able to access each folder of data for each subject and session so now somehow we have to figure out how to actually move (duplicate/copy) the files into a different folder so we can format them
+
+%im not sure why but rsync doesn’t work with matlab so we may either have to run a command prompt (puTTy) command or find an alternative to rsync that works with matlab – the latter is obviously much more preferable
+
+
+
+
+
+%Let’s start with the movement files (they seem easiest)
+%We are currently in the nested for loop (j) so all we have to do is locate the appropriate files and assign variables to them
+
+destDir = fullfile("/var/home/mlyakhov/Documents/Automate/", "sub-" + num2str(subject), "/ses-" + num2str(session))
+
+%check if the directory exists and if it doesn't make it!
+if ~exist(destDir, 'dir')
+mkdir(destDir)
+disp("Directory: " + destDir + "made")
+else
+disp("Directory " + destDir + " already exists")
+end
+
+
+
+%copy necessary files over!
+
+%MovementFiles
+
+COPYMovement_Regressors = fullfile(destDir, "Movement_Regressors.txt")
+Movement_Regressors = fullfile(dataDir,'Movement_Regressors.txt')
+end
+%if isfile(COPYMovement_Regressors) == 0
+cd /
+disp("Importing..")
+copyfile (Movement_Regressors, COPYMovement_Regressors)
+
+%Let's square the movement regressors!
+
+% Open the text file
+
+fid = fopen(destDir + "/Movement_Regressors.txt");
+
+% Read the data from the file as numbers, assuming space-separated columns
+data = textscan(fid, '%f  %f %f %f %f %f%f %f %f %f %f %f'); % Adjust format specifier as needed
+
+% Close the file
+fclose(fid);
+
+% Convert the cell array to a numeric array (for multiple columns)
+Movement_Regressors = cell2mat(data);
+Movement_Regressors_Squared = Movement_Regressors .^2
+Movement_Regressors = [Movement_Regressors Movement_Regressors_Squared]
+disp("BREAK_______")
+% Display the array
+
+disp(width(Movement_Regressors) + " is the width of the Movement_Regressors file!")
+
+%Save the regressors back as a text file!
+disp(destDir + "/Movement_Regressors.txt")
+% Save the array to a .txt file
+cd(destDir)
+writematrix(Movement_Regressors, 'Movement_Regressors.txt');  
+
+%REFERBACKTOHERE
+
+
+
+
+
+
+
+
+
+
+
+disp("Checkpoint")
+
+
+%else
+disp("All necessary Files Previously Imported")
+%ImageFiles
+
+COPYImages = fullfile(destDir, "ses-" + num2str(session) + "_task-stroop_acq-PA_run-01_bold.nii.gz")
+Images = fullfile(dataDir, "ses-" + num2str(session) + "_task-stroop_acq-PA_run-01_bold.nii.gz")
+
+if isfile(COPYImages) == 0
+cd /
+disp("Importing..")
+copyfile (Images, COPYImages)
+else
+disp("Necessary Files Previously Imported")
+end
+%FOR EXPERIMENTAL PURPOSES ONLY THE BELOW DELETES THE FILES MOVED SO WE CAN TEST MORE
+%delete(COPYMovement_Regressors)
+
+
+
+
+
+disp("successful")
+
+%After we have copied everything from the necessary folders into our own folder, we can finally start analysis.
+
+%Let's begin by unzipping the images.
+
+disp("DESTINATIONDIRECTORY: " + destDir)
+
+cd(destDir)
+
+unzippedImage = string(erase(COPYImages, ".gz"))
+
+
+if isfile(unzippedImage) == 0
+gunzip *.gz
+disp("unzipping...")
+else
+disp("All files are already unzipped!")
+
+%THE BELOW SECTION IS NOT NECESSARY FOR THE TMS STUDY, BECAUSE ALL OF THE SCANS HAVE 600 TIME POINTS. HOWEVER, FOR OTHER STUDIES IT IS A USEFUL TOOL TO GET THE AMOUNT OF TIME POINTS AUTOMATICALLY
+%___________________________________________________________________________________________________________________________________________________________
+
+%{
+% Load the NIfTI file
+niftiFile = unzippedImage
+imgData = niftiread(niftiFile);
+
+% Get the NIfTI file information
+info = niftiinfo(niftiFile);
+
+% Extract the size of the data
+dim = info.ImageSize;
+
+% Get the number of time points (fourth dimension)
+if length(dim) >= 4
+    numTimePoints = dim(4);
+else
+    numTimePoints = 1; % Default to 1 if the fourth dimension is absent
+end
+
+% Display the number of time points
+disp(['Number of time points: ', num2str(numTimePoints)]);
+%}
+
+
+
+%_________________________________________________________________________________________________________________________________________________________
+
+%The below is hardcoded because retrieving D4 takes a lot of time so it is easier. Can refer to above section for automatic variable setting
+
+
+
+
+end
+end
+
+
+
+end

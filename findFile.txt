@@ -1,0 +1,35 @@
+function findFile(subject, session, j)
+Time = ["bl" "2w" "4w"]
+% Define the base directory with a wildcard
+baseDir = "/var/home/mlyakhov/Documents/E-PrimeFiles/";
+
+% Define the directory pattern with a wildcard for the unknown part
+dirPattern = "ID * (" + subject + ")";
+
+% Use dir to find the directory that matches the pattern
+dirInfo = dir(fullfile(baseDir, dirPattern));
+
+% Check if the directory exists
+if ~isempty(dirInfo) && length(dirInfo) == 1
+    % Construct the full path to the directory
+    resolvedDir = fullfile(baseDir, dirInfo.name);
+    
+    % Define the file pattern
+    filePattern = "StroopTask_scan_*" + subject + "-" + Time(j) + ".txt";
+    
+    % Construct the full file path
+    ifile = fullfile(resolvedDir, filePattern);
+    
+    %{
+Now you can attempt to open the file using the resolved path
+    try
+        % Call the function to process the file
+        ePrimeTxt2vars(ifile);
+    catch
+        error(['Could not open file: ', ifile]);
+    end
+    %}
+else
+    error('Matching directory not found or multiple directories match the pattern.');
+end
+assignin('base', 'ifile', ifile)

@@ -1,0 +1,20 @@
+% Load the NIfTI file
+niftiFile = 'ses-24252_task-stroop_acq-PA_run-01_bold.nii';
+imgData = niftiread(niftiFile);
+
+% Get the NIfTI file information
+info = niftiinfo(niftiFile);
+
+% Extract the size of the data
+dim = info.ImageSize;
+
+% Get the number of time points (fourth dimension)
+if length(dim) >= 4
+    numTimePoints = dim(4);
+else
+    numTimePoints = 1; % Default to 1 if the fourth dimension is absent
+end
+
+% Display the number of time points
+disp(['Number of time points: ', num2str(numTimePoints)]);
+

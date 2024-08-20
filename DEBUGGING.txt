@@ -1,0 +1,74 @@
+% Define the subjects as a string array
+subjects = {12497; 13137; 12861; 13582; 13415; 14269; 14455; 14337; 7193};
+
+% Define the session numbers as a cell array
+sessions = {24182
+                 24190
+                 24202
+                 24189
+                 24197
+                 24203
+                 24239
+                 24249
+                 24252
+                 24240
+                 24246
+                 24250
+                 24255
+                 24257
+                 24265
+                 24256
+                 24260
+                 24267
+                 24261
+                 24279
+                 24284
+                 24274
+                 24277
+                 24283
+                 24317
+                 24323
+                 24335};
+
+% Number of sessions per subject
+sessionsPerSubject = 3; 
+numSubjects = numel(subjects);
+string(sessions)
+string(subjects)
+% Convert the session numbers to a string array
+%sessions = string([sessionsinput{:}]);
+
+% Initialize cell arrays for transformed sessions and subjects
+transformedSessions = cell(numSubjects, sessionsPerSubject);
+transformedSubjects = cell(1, numSubjects);
+
+% Transform the session numbers
+for i = 1:numSubjects
+    for j = 1:sessionsPerSubject
+        idx = (i-1)*sessionsPerSubject + j;
+        idx
+        transformedSessions{i, j} = ['ses-' + sessions(idx)];
+    end
+    transformedSubjects{i,1} = ['sub-' + subjects(i)];
+end
+
+% Transform the subject numbers
+for i = 1:numSubjects
+    numericPart = regexp(subjects(i), '\d+', 'match', 'once');
+    transformedSubjects{i} = ['sub-' numericPart];
+end
+
+% Initialize the array
+array = cell(sessionsPerSubject + 1, numSubjects);
+
+% Fill the array with transformed subjects and their sessions
+for i = 1:numSubjects
+    array{1, i} = transformedSubjects{i};
+    for j = 1:sessionsPerSubject
+        array{j + 1, i} = transformedSessions{i, j};
+    end
+end
+
+% Display the array
+disp('Array:');
+disp(array);

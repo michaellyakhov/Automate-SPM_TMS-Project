@@ -1,0 +1,86 @@
+
+% Initialize SPM
+spm('defaults', 'FMRI');
+spm_jobman('initcfg');
+
+% Define the directory to store the second-level analysis results
+secondLevelDir = "/var/home/mlyakhov/Documents/Automate/SecondLevel";
+secondLevelDir = char(secondLevelDir)
+if ~isfolder(secondLevelDir)
+    mkdir(secondLevelDir);
+end
+
+%contrast001 files
+
+
+
+contrastImages = {};
+
+matlabbatch = {};
+
+for i = 1:size(array, 2)
+subject = array(1,i);
+%For the time being, j (number of sessions per subject) will be harcoded. fix later.
+for j = 2:4
+if ~strcmp(array(1,i), array(j,i))
+session=array(j,i);
+disp(session);
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/sub-" + subject + "/MNINonLinear/Results/ses-" + session + "_task-stroop_acq-PA_run-01_bold");
+disp("checkpoint")
+destDir = "/var/home/mlyakhov/Documents/Automate/sub-" + subject + "/ses-" + session
+destDir = char(destDir)
+firstLevelDir = destDir
+
+contrastImage = fullfile(destDir, 'con_0001.nii');
+contrastImages{end+1} = contrastImage
+end
+end
+end
+% Set up the batch for the second-level analysis
+
+
+% Specify the directory for the second-level analysis
+matlabbatch{1}.spm.stats.factorial_design.dir = {secondLevelDir};
+
+% Specify the design (one-sample t-test)
+matlabbatch{1}.spm.stats.factorial_design.des.t1.scans = contrastImages';
+
+% Specify other design options
+%matlabbatch{1}.spm.stats.factorial_design.cov = struct('c', {}, 'cname', {}, 'iCFI', {}, 'iCC', {});
+matlabbatch{1}.spm.stats.factorial_design.masking.tm.tm_none = 1;
+matlabbatch{1}.spm.stats.factorial_design.masking.im = 1;
+matlabbatch{1}.spm.stats.factorial_design.masking.em = {''};
+matlabbatch{1}.spm.stats.factorial_design.globalc.g_omit = 1;
+matlabbatch{1}.spm.stats.factorial_design.globalm.gmsca.gmsca_no = 1;
+matlabbatch{1}.spm.stats.factorial_design.globalm.glonorm = 1;
+disp("checkpoint")
+
+% Model Estimation
+matlabbatch{2}.spm.stats.fmri_est.spmmat = {fullfile(secondLevelDir, 'SPM.mat')};
+spm_jobman('run', matlabbatch);
+
+% Define the contrast (e.g., one-sample t-test with a positive contrast)
+matlabbatch{3}.spm.stats.con.spmmat = {fullfile(destDir, 'SPM.mat')};
+matlabbatch{3}.spm.stats.con.consess{1}.tcon.name = 'incongruent';
+matlabbatch{3}.spm.stats.con.consess{1}.tcon.weights = [1];
+matlabbatch{3}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
+
+
+matlabbatch{3}.spm.stats.con.consess{2}.tcon.name = 'congruent';
+matlabbatch{3}.spm.stats.con.consess{2}.tcon.weights = [-1];
+matlabbatch{3}.spm.stats.con.consess{2}.tcon.sessrep = 'none';
+
+% Run the batch
+
+
+spm_jobman('run', matlabbatch);
+
+% Load the estimated SPM.mat file
+spm_file = fullfile(secondLevelDir, 'SPM.mat');
+load(spm_file);
+
+% Set up the results configuration
+xSPM = spm_getSPM(struct('swd', secondLevelDir, 'Ic', 1, 'thresDesc', 'FWE', 'u', 0.05, 'k', 10));
+
+% View the results
+spm_results_ui('Setup', xSPM);

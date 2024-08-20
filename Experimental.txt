@@ -1,0 +1,75 @@
+
+
+% Initialize SPM
+spm('defaults', 'FMRI');
+spm_jobman('initcfg');
+
+% Define the directory containing subject data
+dataDir = destDir
+
+
+for i = 1:length(subjects)
+subject = array(1,i)
+disp(subject)
+for j = 2:sessionsPerSubject+1
+session = array (j,i)
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/" + "sub-" + num2str(subject) + "/MNINonLinear/Results/ses-" + num2str(session) + "_task-stroop_acq-PA_run-01_bold")
+destDir = ("/var/home/mlyakhov/Documents/AutomateSmoothing1/" + "sub-" + subject + "/ses-" + session)   
+    % Load Onsets and Durations from E-Prime file
+    onsetFile = fullfile(dataDir, 'onsets.csv'); % Path to onset file
+    onsets = readmatrix(onsetFile);
+    durations = ones(size(onsets)) * 1.5; % Duration of 1.5 seconds for each event
+    
+    % Split onsets into two conditions (example)
+    condition1_onsets = onsets(:, 1); % Adjust based on actual columns
+    condition2_onsets = onsets(:, 2); % Adjust based on actual columns
+    
+    % Load Movement Regressors from file
+    movementFile = fullfile(dataDir, 'movement_regressors.txt'); % Path to movement regressors file
+    movementRegressors = readmatrix(movementFile);
+    
+    % Define file paths for preprocessed (smoothed) functional images
+    funcFiles = spm_select('ExtFPList', funcDir, '^sw.*\.nii$', Inf);
+    
+    % First Level Analysis
+    matlabbatch = [];
+    
+    % Specify 1st level model
+    matlabbatch{1}.spm.stats.fmri_spec.dir = {fullfile(dataDir, '1st_level')};
+    matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
+    matlabbatch{1}.spm.stats.fmri_spec.timing.RT = 0.8; % Repetition time, adjust if necessary
+    matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;
+    matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = 1;
+    matlabbatch{1}.spm.stats.fmri_spec.sess.scans = cellstr(funcFiles);
+    
+    % Define conditions
+    matlabbatch{1}.spm.stats.fmri_spec.sess.cond(1).name = 'congruent';
+    matlabbatch{1}.spm.stats.fmri_spec.sess.cond(1).onset = condition1_onsets;
+    matlabbatch{1}.spm.stats.fmri_spec.sess.cond(1).duration = durations(:, 1); % Match length to onsets
+    
+    matlabbatch{1}.spm.stats.fmri_spec.sess.cond(2).name = 'incongruent';
+    matlabbatch{1}.spm.stats.fmri_spec.sess.cond(2).onset = condition2_onsets;
+    matlabbatch{1}.spm.stats.fmri_spec.sess.cond(2).duration = durations(:, 2); % Match length to onsets
+    
+    % Add movement regressors
+    matlabbatch{1}.spm.stats.fmri_spec.sess.regress(1).name = 'Movement';
+    matlabbatch{1}.spm.stats.fmri_spec.sess.regress(1).val = movementRegressors;
+    
+
+    %{
+    % Model estimation
+    matlabbatch{2}.spm.stats.fmri_est.spmmat = {fullfile(subjDir, '1st_level', 'SPM.mat')};
+    
+    % Contrast Manager
+    matlabbatch{3}.spm.stats.con.spmmat = {fullfile(subjDir, '1st_level', 'SPM.mat')};
+    matlabbatch{3}.spm.stats.con.consess{1}.tcon.name = 'Condition1 > Baseline';
+    matlabbatch{3}.spm.stats.con.consess{1}.tcon.weights = [1 0];
+    matlabbatch{3}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
+    
+    matlabbatch{3}.spm.stats.con.consess{2}.tcon.name = 'Condition2 > Baseline';
+    matlabbatch{3}.spm.stats.con.consess{2}.tcon.weights = [0 1];
+    matlabbatch{3}.spm.stats.con.consess{2}.tcon.sessrep = 'none';
+    %}
+    % Run the batch
+    spm_jobman('run', matlabbatch);
+end

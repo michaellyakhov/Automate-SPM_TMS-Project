@@ -1,0 +1,97 @@
+
+subjects = ["12497" "13137" "12861" "13582" "13415" "14269" "14455" "14337" "7193"]
+sessionsinput = {24182
+24190
+24202
+24189
+24197
+24203
+24239
+24249
+24252
+24240
+24246
+24250
+24255
+24257
+24265
+24256
+24260
+24267
+24261
+24279
+24284
+24274
+24277
+24283
+24317
+24323
+24335}
+
+
+%{
+inputsessions = {
+    [24182, 24190, 24202], ...
+    [24189, 24197, 24203], ...
+    [24239, 24249, 24252], ...
+    [24240, 24246, 24250], ...
+    [24255, 24257, 24265], ...
+    [24256, 24260, 24267], ...
+    [24261, 24279, 24284], ...
+    [24274, 24277, 24283], ...
+    [24317, 24323, 24335]
+};
+
+
+% Number of subjects and sessions
+sessionsperSubject = numel(inputsessions{1})
+%}
+
+%Hardcoding amout of sessions per subject because the format inputted from the spreadsheet is too hard to deal with -- fix later if needed 
+
+sessionsPerSubject = 3 
+numSubjects = numel(subjects);
+% Assuming each subject has exactly 3 sessions
+
+
+%Format Sessions
+
+sessions = string([sessionsinput{:}]);
+
+
+for i = 1:length(sessions)
+    % Extract the numeric part of the subject
+    numericPart = regexp(sessions{i}, '\d+', 'match', 'once');
+    % Create the new subject format
+    transformedSessions{i} = ['ses-' numericPart];
+end
+
+numSessions = numel(sessions); 
+
+
+% Display sessions
+
+numSessions = numel(sessions); 
+
+%format subjects
+
+for i = 1:length(subjects)
+    % Extract the numeric part of the subject
+    numericPart = regexp(subjects{i}, '\d+', 'match', 'once');
+    % Create the new subject format
+    transformedSubjects{i} = ['sub-' numericPart];
+    
+end
+disp(numSubjects)
+array = {sessionsPerSubject + 1, numSubjects}
+size(array)
+
+
+%{
+for i = 1:numSubjects
+    array{1, i} = transformedSubjects{i};
+    for j = 1:sessionsPerSubject
+        array{j + 1, i} = transformedSessions{i, j};
+    end
+end
+%}

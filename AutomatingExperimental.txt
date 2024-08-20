@@ -1,0 +1,167 @@
+
+subjects = ["12497" "13137" "12861" "13582" "13415" "14269" "14455" "14337" "7193"]
+sessions = {24182
+24190
+24202
+24189
+24197
+24203
+24239
+24249
+24252
+24240
+24246
+24250
+24255
+24257
+24265
+24256
+24260
+24267
+24261
+24279
+24284
+24274
+24277
+24283
+24317
+24323
+24335}
+
+
+%{
+inputsessions = {
+    [24182, 24190, 24202], ...
+    [24189, 24197, 24203], ...
+    [24239, 24249, 24252], ...
+    [24240, 24246, 24250], ...
+    [24255, 24257, 24265], ...
+    [24256, 24260, 24267], ...
+    [24261, 24279, 24284], ...
+    [24274, 24277, 24283], ...
+    [24317, 24323, 24335]
+};
+
+
+% Number of subjects and sessions
+sessionsperSubject = numel(inputsessions{1})
+%}
+
+%Hardcoding amout of sessions per subject because the format inputted from the spreadsheet is too hard to deal with -- fix later if needed 
+
+sessionsPerSubject = 3 
+numSubjects = numel(subjects);
+% Assuming each subject has exactly 3 sessions
+
+%Elements in Sessions
+
+numSessions = numel(sessions); 
+% Display sessions
+disp(sessions);
+
+
+
+%{
+%Format Sessions
+
+sessions = string([sessionsinput{:}]);
+
+disp(sessionsoutput)
+
+for i = 1:length(sessions)
+    % Extract the numeric part of the subject
+    numericPart = regexp(sessions{i}, '\d+', 'match', 'once');
+    % Create the new subject format
+    transformedSessions{i} = ['ses-' numericPart];
+end
+
+
+
+
+
+
+%format subjects
+
+for i = 1:length(subjects)
+    % Extract the numeric part of the subject
+    numericPart = regexp(subjects{i}, '\d+', 'match', 'once');
+    % Create the new subject format
+    transformedSubjects{i} = ['sub-' numericPart];
+    
+end
+
+
+%}
+sessions = string(sessions)
+array = zeros(sessionsPerSubject+1, numSubjects)
+
+ for i = 1:numSubjects
+    array(1,i) = subjects(i);
+    for j = 1:sessionsPerSubject
+    array(j+1, i) = sessions(i*3-(3-j));
+    array
+    end
+end
+
+disp(array)
+
+
+
+%now the goal is to iterate through this array and make datadir go through each subject and session and then ultimately access the data
+
+%Iterate through each subject and session 
+for i = 1:length(subjects)
+disp(i)
+subject = array(1,i)
+disp(array(1,i))
+for j = 2:sessionsPerSubject+1
+if ~strcmp(array(1,i), array(j,i))
+session=array(j,i)
+disp(session)
+stringSession = string(session)
+stringSubject = string(subject)
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/" + subject + "/MNINonLinear/Results/ses-" + num2str(session) + "_task-stroop_acq-PA_run-01_bold")
+
+disp(dataDir)
+
+%We are now able to access each folder of data for each subject and session so now somehow we have to figure out how to actually move (duplicate/copy) the files into a different folder so we can format them
+
+%im not sure why but rsync doesn’t work with matlab so we may either have to run a command prompt (puTTy) command or find an alternative to rsync that works with matlab – the latter is obviously much more preferable
+
+
+
+
+
+%Let’s start with the movement files (they seem easiest)
+%We are currently in the nested for loop (j) so all we have to do is locate the appropriate files and assign variables to them
+
+destDir = fullfile("/var/home/mlyakhov/Documents/Automate/", "sub-" + num2str(subject), "/ses-" + num2str(session))
+
+%check if the directory exists and if it doesn't make it!
+if ~exist(destDir, 'dir')
+mkdir(destDir)
+disp("Directory: " + destDir + "made")
+else
+disp("Directory " + destDir + " already exists")
+disp(session)
+COPYMovement_Regressors = fullfile(destDir, "Movement_Regressors.txt")
+Movement_Regressors = fullfile(dataDir,'Movement_Regressors.txt')
+end
+cd /
+copyfile (Movement_Regressors, COPYMovement_Regressors)
+
+
+%FOR EXPERIMENTAL PURPOSES ONLY THE BELOW DELETES THE FILES MOVED SO WE CAN TEST MORE
+%delete(COPYMovement_Regressors)
+
+
+
+
+
+disp("successful")
+
+end
+disp(j)
+end
+end
+

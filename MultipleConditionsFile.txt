@@ -1,0 +1,10 @@
+
+
+ifile = "/var/home/mlyakhov/Documents/E-PrimeFiles/ID 6 (12497)/StroopTask_scan_v2-12497-bl.txt"
+ [T,headervars] = ePrimeTxt2vars(ifile)
+
+Trim()
+formatOnsets()
+destDir = '/var/home/mlyakhov/Documents/Automate'
+cd(destDir)
+save('Onsets', 'onsets', 'durations', 'names');

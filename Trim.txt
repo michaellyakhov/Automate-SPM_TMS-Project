@@ -1,0 +1,37 @@
+function Trim()
+
+T = evalin('base', 'T');
+
+stimColorColumn = T.StimColor;
+stimWordColumn = T.StimWord;
+onsetColumn = T.Stimuli__OnsetTime;  % Use the correct variable name identified
+
+
+% Access the first element in the column 'ColumnName'
+firstElement = T.Stimuli__OnsetTime{1};
+
+% Check if the first element is a cell containing a 0x0 double
+if iscell(firstElement) && isempty(firstElement{1}) && isa(firstElement{1}, 'double') && isequal(size(firstElement{1}), [0, 0])
+    disp('The first element is a cell containing a 0x0 double.');
+elseif isempty(firstElement) && isa(firstElement, 'double') && isequal(size(firstElement), [0, 0])
+    disp('The first element is a 0x0 double (not inside a cell).');
+    onsetColumn = onsetColumn(2:height(onsetColumn))
+else
+    disp('The first element is not a cell containing a 0x0 double.');
+end
+
+
+% Access the first element in the column 'ColumnName'
+SecondElement = T.Stimuli__OnsetTime{height(T.Stimuli__OnsetTime)};
+
+% Check if the first element is a cell containing a 0x0 double
+if iscell(SecondElement) && isempty(SecondElement{1}) && isa(SecondElement{1}, 'double') && isequal(size(SecondElement{1}), [0, 0])
+    disp('The last element is a cell containing a 0x0 double.');
+elseif isempty(SecondElement) && isa(SecondElement, 'double') && isequal(size(SecondElement), [0, 0])
+    disp('The first element is a 0x0 double (not inside a cell).');
+    onsetColumn = onsetColumn(1:height(onsetColumn)-1)
+else
+    disp('The last element is not a cell containing a 0x0 double.');
+end
+assignin('base', 'onsetColumn', onsetColumn)
+end

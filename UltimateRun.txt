@@ -1,0 +1,157 @@
+
+
+addpath('/var/home/mlyakhov/Documents/Script')
+subjects = ["12497" "13137" "12861" "13582" "13415" "14269" "14455" "14337" "7193"]
+sessions = {
+    [24182, 24190, 24202], ...
+    [24189, 24197, 24203], ...
+    [24239, 24249, 24252], ...
+    [24240, 24246, 24250], ...
+    [24255, 24257, 24265], ...
+    [24256, 24260, 24267], ...
+    [24261, 24279, 24284], ...
+    [24274, 24277, 24283], ...
+    [24317, 24323, 24335]};
+
+
+makeArray(subjects, sessions)
+
+for i = 1:size(array, 2)
+subject = array(1,i);
+%For the time being, j (number of sessions per subject) will be harcoded. fix later.
+for j = 2:4
+if ~strcmp(array(1,i), array(j,i))
+session=array(j,i);
+disp(session);
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/sub-" + subject + "/MNINonLinear/Results/ses-" + session + "_task-stroop_acq-PA_run-01_bold");
+disp("checkpoint")
+destDir = "/var/home/mlyakhov/Documents/Automate/sub-" + subject + "/ses-" + session
+disp(dataDir)
+
+end
+
+
+% First Level Analysis
+matlabbatch = [];
+
+if isfile(fullfile(destDir, "SPM.mat")) ==0
+disp("SPM.mat does not exist")
+
+MovementFormatting(subject, session)
+
+AutomateSmoothing(subject, array)
+
+if isfile('Onsets.mat') == 0
+
+findFile(subject, session, j)
+
+[T,headervars] = ePrimeTxt2vars(ifile)
+
+disp(ifile)
+Trim()
+
+formatOnsets()
+cd(destDir)
+save('Onsets', 'onsets', 'durations', 'names');
+
+end
+end
+end
+end
+
+
+%Now, let's run the analysis!!
+for i = 1:size(array, 2)
+subject = array(1,i);
+%For the time being, j (number of sessions per subject) will be harcoded. fix later.
+for j = 2:4
+if ~strcmp(array(1,i), array(j,i))
+session=array(j,i);
+disp(session);
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/sub-" + subject + "/MNINonLinear/Results/ses-" + session + "_task-stroop_acq-PA_run-01_bold");
+disp("checkpoint")
+destDir = "/var/home/mlyakhov/Documents/Automate/sub-" + subject + "/ses-" + session
+disp(dataDir)
+
+end
+
+
+
+% Load Movement Regressors from file (no need to read them, just use the file path)
+movementFile = char(fullfile(destDir, 'Movement_Regressors.txt'));
+% Path to movement regressors file
+
+cd(destDir);
+
+filepath = destDir
+
+% Define file paths for preprocessed (smoothed) functional images
+disp("Checkpoint");
+
+
+% First, try to find smoothed files prefixed with "ss"
+funcFiles = spm_select('ExtFPList', filepath, '^ss.*\.nii$', Inf);
+
+% If no smoothed files are found, fall back to non-smoothed bold files
+if isempty(funcFiles)
+    funcFiles = spm_select('ExtFPList', filepath, '.*\.nii$', Inf);
+end
+
+
+% Convert to a cell array of character vectors
+funcFiles = cellstr(funcFiles);
+
+destDir = char(destDir)
+
+
+% Specify 1st level model
+matlabbatch{1}.spm.stats.fmri_spec.dir = {destDir}; % Specify the output directory
+matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
+matlabbatch{1}.spm.stats.fmri_spec.timing.RT = 0.8; % Repetition time, adjust if necessary
+matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;
+matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = 8;
+matlabbatch{1}.spm.stats.fmri_spec.sess.scans = funcFiles;
+
+% Define conditions
+multipleConditionsPath = '/var/home/mlyakhov/Documents/Automate/sub-' + string(subject) + '/ses-' + string(session )+ '/Onsets.mat'
+multipleConditionsPath = char(multipleConditionsPath)
+matlabbatch{1}.spm.stats.fmri_spec.sess.multi = {multipleConditionsPath};
+
+% Add movement regressors using the multiple regressors option
+matlabbatch{1}.spm.stats.fmri_spec.sess.multi_reg = {movementFile};
+
+
+spmFilePath = fullfile(destDir, "SPM.mat")
+spmFilePath = char(spmFilePath)
+
+% Verify that the SPM.mat file exists
+
+% Initialize the batch job structure
+
+
+% Model Estimation
+
+matlabbatch{2}.spm.stats.fmri_est.spmmat = {spmFilePath}; % Use a cell array to specify the SPM.mat file path
+
+
+
+
+% Contrast Manager
+matlabbatch{2}.spm.stats.con.spmmat = {fullfile(destDir, 'SPM.mat')};
+matlabbatch{2}.spm.stats.con.consess{1}.tcon.name = 'incongruent vs congruent';
+matlabbatch{2}.spm.stats.con.consess{1}.tcon.weights = [1 -1];
+matlabbatch{2}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
+
+
+
+% Run the batch
+spm_jobman('run', matlabbatch);
+
+end
+end
+
+
+%IF FOR SOME REASON OVERWRITING SPM IS AN ISSUE MAKE A PLACEHOLDER DIRECTORY THAT THE ESTIMATION/FIRST LEVEL MODEL WILL DEPOSIT RESULTS INTO, AND THEN COPYFILE FROM PLACEHOLDER DIRECTORY TO THE FINAL, INTENDED DIRECTORY.
+
+
+

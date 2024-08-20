@@ -1,0 +1,89 @@
+%TO RUN [array] = function createArray(subjects, sessions)
+
+function makeArray(subjects, sessions)
+%{
+subjects = ["12497" "13137" "12861" "13582" "13415" "14269" "14455" "14337" "7193"]
+sessions = {
+    [24182, 24190, 24202], ...
+    [24189, 24197, 24203], ...
+    [24239, 24249, 24252], ...
+    [24240, 24246, 24250], ...
+    [24255, 24257, 24265], ...
+    [24256, 24260, 24267], ...
+    [24261, 24279, 24284], ...
+    [24274, 24277, 24283], ...
+    [24317, 24323, 24335]
+};
+%}
+% Display sessions
+disp(sessions);
+
+% Number of subjects and sessions
+numSubjects = numel(subjects);
+numSessions = 3; % Assuming each subject has exactly 3 sessions
+
+
+
+for i = 1:length(subjects)
+    % Extract the numeric part of the subject
+    numericPart = regexp(subjects{i}, '\d+', 'match', 'once');
+    % Create the new subject format
+    transformedSubjects{i} = ['sub-' numericPart];
+end
+
+array = cell(numSessions + 1, numSubjects)
+
+ for i = 1:numSubjects
+    array{1,i} = subjects{i};
+    array(2:end, i) = num2cell(sessions{i});
+end
+
+disp(array)
+
+
+
+
+%now the goal is to iterate through this array and make datadir go through each subject and session and then ultimately access the data
+
+%Iterate through each subject and session 
+
+
+assignin('base', 'array', array);
+
+for i = 1:size(array, 2)
+disp(i)
+subject = array(1,i)
+disp(array(1,i))
+for j = 1:size(array, 1)
+if ~strcmp(array(1,i), array(j,i))
+session=array(j,i)
+disp(session)
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/sub-" + subject + "/MNINonLinear/Results/ses-" + session + "_task-stroop_acq-PA_run-01_bold")
+disp(dataDir)
+end
+disp(j)
+end
+end
+
+
+%DISREGARD BELOW
+%We are now able to access each folder of data for each subject and session so now somehow we have to figure out how to actually move (duplicate/copy) the files into a different folder so we can format them
+%im not sure why but rsync doesn’t work with matlab so we may either have to run a command prompt (puTTy) command or find an alternative to rsync that works with matlab – the latter is obviously much more preferable
+%{
+%Let’s start with the movement files (they seem easiest)
+%We are currently in the nested for loop (j) so all we have to do is locate the appropriate files and assign variables to them
+
+destDir = '/var/home/mlyakhov/Documents/Replicate/'
+
+COPYMovement_Regressors = fullfile(destDir, 'Movement_Regressors.txt')
+Movement_Regressors = fullfile(dataDir,'Movement_Regressors.txt')
+
+copyfile (Movement_Regressors, COPYMovement_Regressors)
+%}
+
+
+
+
+
+
+

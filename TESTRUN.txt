@@ -1,0 +1,46 @@
+% Initialize SPM
+spm('defaults', 'FMRI');
+spm_jobman('initcfg');
+
+
+dataDir = fullfile('/analysis/HCP/BIDS', ['ses-', num2str(session)], ['sub-', num2str(subject)], 'MNINonLinear', 'Results', ['ses-', num2str(session), '_task-stroop_acq-PA_run-01_bold']);
+destDir = fullfile('/var/home/mlyakhov/Documents/Automate', ['sub-', num2str(subject)], ['ses-', num2str(session)]);
+
+% Load Movement Regressors from file (no need to read them, just use the file path)
+movementFile = fullfile(destDir, 'Movement_Regressors.txt'); % Path to movement regressors file
+filepath = '/var/home/mlyakhov/Documents/Automate/sub-12497/ses-24182/ses-24182_task-stroop_acq-PA_run-01_bold.nii'
+% Define file paths for preprocessed (smoothed) functional images
+funcFiles = filepath
+%spm_select('ExtFPList', filepath, '^sw.*\.nii$', Inf);
+
+% First Level Analysis
+matlabbatch = [];
+
+% Specify 1st level model
+matlabbatch{1}.spm.stats.fmri_spec.dir = {destDir}; % Specify the output directory
+matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
+matlabbatch{1}.spm.stats.fmri_spec.timing.RT = 0.8; % Repetition time, adjust if necessary
+matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;
+matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = 1;
+matlabbatch{1}.spm.stats.fmri_spec.sess.scans = cellstr(funcFiles);
+
+% Define conditions
+matlabbatch{1}.spm.stats.fmri_spec.sess.multi = {'/var/home/mlyakhov/Documents/Automate/sub-12497/ses-24182/Onsets.mat'};
+
+% Add movement regressors using the multiple regressors option
+matlabbatch{1}.spm.stats.fmri_spec.sess.multi_reg = {movementFile};
+
+% Uncomment the following block for model estimation and contrasts
+
+% Model estimation
+matlabbatch{2}.spm.stats.fmri_est.spmmat = {fullfile(destDir, 'SPM.mat')};
+
+% Contrast Manager
+matlabbatch{3}.spm.stats.con.spmmat = {fullfile(destDir, 'SPM.mat')};
+matlabbatch{3}.spm.stats.con.consess{1}.tcon.name = 'incongruent vs congruent';
+matlabbatch{3}.spm.stats.con.consess{1}.tcon.weights = [1 -1];
+matlabbatch{3}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
+
+
+% Run the batch
+spm_jobman('run', matlabbatch);

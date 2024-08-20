@@ -1,47 +1,11 @@
 
-
-%_______________________________________________________________________________________________________________________________________________________________________________
-%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-%_______________________________________________________________________________________________________________________________________________________________________________
-
-
-%automate smoothing
-
-% SPM fMRI Preprocessing Script
-% This script preprocesses fMRI data using SPM, focusing on the smoothing step.
-
-% Initialize SPM
-% SPM Batch for Smoothing
-
-function AutomateSmoothing(subjects, array)
-
-
 for i = 1:length(subjects)
 subject = array(1,i)
-
+disp(subject)
 for j = 2:sessionsPerSubject+1
-if ~strcmp(array(1,i), array(j,i))
-session=array(j,i)
-subject
-session
+session = array (j,i)
 dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/" + "sub-" + num2str(subject) + "/MNINonLinear/Results/ses-" + num2str(session) + "_task-stroop_acq-PA_run-01_bold")
-end
-
-if isfile(dataDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii.gz") == 1
-copyfile(dataDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii.gz", destDir)
-cd(destDir)
-gunzip *.gz
-array(j,i)
-array(1,i)
-array(j,i) = 0
-subject
-session
-if isfile((dataDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii.gz") == 0
-disp("FILE MISSING")
-MissingFiles{end+1} = destDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii"
-end
-
-
+destDir = ("/var/home/mlyakhov/Documents/AutomateSmoothing1/" + "sub-" + subject + "/ses-" + session)
 spm('Defaults','fMRI');
 disp("Checkpoint")
 spm_jobman('initcfg');
@@ -84,8 +48,4 @@ end
 
 end
 end
-end
-array(1,i) = 0
-
-MissingFiles
 end

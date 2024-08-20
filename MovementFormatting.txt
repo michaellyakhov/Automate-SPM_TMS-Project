@@ -1,0 +1,42 @@
+%TO RUN [Movement_Regressors] = function MovementFormatting(subject, session)
+function MovementFormatting(subject, session)
+%session = 24182
+%subject = 12497
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/" + "sub-" + num2str(subject) + "/MNINonLinear/Results/ses-" + num2str(session) + "_task-stroop_acq-PA_run-01_bold")
+destDir = ("/var/home/mlyakhov/Documents/Automate/" + "sub-" + subject + "/ses-" + session)
+    
+
+COPYMovement_Regressors = fullfile(destDir, "Movement_Regressors.txt")
+Movement_Regressors = fullfile(dataDir,'Movement_Regressors.txt')
+
+%if isfile(COPYMovement_Regressors) == 0
+cd /
+disp("Importing..")
+copyfile (Movement_Regressors, COPYMovement_Regressors)
+
+%Let's square the movement regressors!
+
+% Open the text file
+
+fid = fopen(destDir + "/Movement_Regressors.txt");
+
+% Read the data from the file as numbers, assuming space-separated columns
+data = textscan(fid, '%f  %f %f %f %f %f%f %f %f %f %f %f'); % Adjust format specifier as needed
+
+% Close the file
+fclose(fid);
+
+% Convert the cell array to a numeric array (for multiple columns)
+Movement_Regressors = cell2mat(data);
+Movement_Regressors_Squared = Movement_Regressors .^2
+Movement_Regressors = [Movement_Regressors Movement_Regressors_Squared]
+disp("BREAK_______")
+% Display the array
+
+disp(width(Movement_Regressors) + " is the width of the Movement_Regressors file!")
+
+%Save the regressors back as a text file!
+disp(destDir + "/Movement_Regressors.txt")
+% Save the array to a .txt file
+cd(destDir)
+writematrix(Movement_Regressors, 'Movement_Regressors.txt');  

@@ -1,0 +1,61 @@
+
+clear
+clc
+subjects = ["12497" "13137" "12861" "13582" "13415" "14269" "14455" "14337" "7193"]
+sessions = {24182
+24190
+24202
+24189
+24197
+24203
+24239
+24249
+24252
+24240
+24246
+24250
+24255
+24257
+24265
+24256
+24260
+24267
+24261
+24279
+24284
+24274
+24277
+24283
+24317
+24323
+24335}
+FilesSmoothed = {}
+MissingFiles = {}
+
+%Hardcoding amout of sessions per subject because the format inputted from the spreadsheet is too hard to deal with -- fix later if needed 
+
+sessionsPerSubject = 3 
+numSubjects = numel(subjects);
+% Assuming each subject has exactly 3 sessions
+
+%Elements in Sessions
+
+numSessions = numel(sessions); 
+% Display sessions
+
+
+
+sessions = string(sessions)
+array = zeros(sessionsPerSubject+1, numSubjects)
+
+ for i = 1:numSubjects
+    array(1,i) = subjects(i);
+    for j = 1:sessionsPerSubject
+    array(j+1, i) = sessions(i*3-(3-j));
+    
+    i
+    end
+
+end
+
+array

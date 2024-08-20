@@ -1,0 +1,20 @@
+MissingFiles = {}
+for i = 1:length(subjects)
+subject = array(1,i)
+for j = 2:sessionsPerSubject+1
+session = array (j,i)
+dataDir = ("/analysis/HCP/BIDS/ses-" + session + "/" + "sub-" + num2str(subject) + "/MNINonLinear/Results/ses-" + num2str(session) + "_task-stroop_acq-PA_run-01_bold")
+destDir = ("/var/home/mlyakhov/Documents/AutomateSmoothing1/" + "sub-" + subject + "/ses-" + session)
+if isfile(destDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii.gz") == 1 
+isfile(destDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii") == 0
+cd(destDir)
+disp("file is present")
+gunzip *.gz
+
+end
+isfile(destDir + "/ses-" + session + "_task-stroop_acq-PA_run-01_bold_hp2000_clean.nii.gz") == 0 
+MissingFiles{end+1} = "Subject:" + subject + " session:" + session
+end
+end
+
+end

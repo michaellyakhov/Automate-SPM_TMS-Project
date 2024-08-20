@@ -1,0 +1,83 @@
+
+
+function formatOnsets()
+    % Access variable from base workspace
+    T = evalin('base', 'T');
+    onsetColumn = evalin('base', 'onsetColumn')
+    % Perform operations in the temporary workspace
+    
+    
+    % Assign results back to the base workspace
+    
+
+
+
+
+% Ensure the table T is defined properly before running the script
+% Assuming T is already loaded or created before this script is run
+
+% Remove leading/trailing spaces in variable names
+T.Properties.VariableNames = strtrim(T.Properties.VariableNames);
+
+% List and verify variable names
+disp('List of all variable names in T:');
+disp(T.Properties.VariableNames);
+
+% Try to access and verify the column names
+try
+    stimColorColumn = T.StimColor;
+    stimWordColumn = T.StimWord;
+    %onsetColumn = T.Stimuli__OnsetTime;  % Use the correct variable name identified
+catch ME
+    error('Error accessing table variables: %s', ME.message);
+end
+
+% Initialize arrays for congruent and incongruent onset times
+congruentOnsets = [];
+incongruentOnsets = [];
+
+% Convert the first value of onsetColumn to double
+firstOnsetValue = cell2mat(onsetColumn(1));
+
+% Loop through each row of the table
+for i = 1:length(onsetColumn)
+    % Convert the current onset value to double
+    currentOnsetValue = cell2mat(onsetColumn(i));
+
+    % Check if the StimColor and StimWord in the current row are the same (congruent)
+    if strcmp(stimColorColumn{i}, stimWordColumn{i})
+        % If congruent and onset time is not empty, add the adjusted value to the congruent array
+        if ~isempty(currentOnsetValue)
+            adjustedValue = 0.001*(currentOnsetValue - firstOnsetValue);
+            congruentOnsets = [congruentOnsets; adjustedValue];
+        end
+    else
+        % If incongruent and onset time is not empty, add the adjusted value to the incongruent array
+        if ~isempty(currentOnsetValue)
+            adjustedValue = 0.001*(currentOnsetValue - firstOnsetValue);
+            incongruentOnsets = [incongruentOnsets; adjustedValue];
+        end
+    end
+end
+
+
+disp("onsets")
+onsets = {incongruentOnsets, congruentOnsets};
+disp(onsets)
+
+
+% Create the 1x2 cell array where each cell contains the column vector
+durations = {1.5*ones(height(onsets{1}),1), 1.5*ones(height(onsets{2}),1)};
+
+% Display the result
+disp('Durations:');
+disp(durations);
+
+
+names = {"incongruent", "congruent"}
+assignin('base', 'T', T);
+assignin('base', 'onsetColumn', onsetColumn);
+assignin('base', 'onsets', onsets);
+assignin('base', 'durations', durations);
+assignin('base', 'names', names);
+end
